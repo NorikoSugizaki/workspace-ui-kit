@@ -16,6 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { SectionLabel } from "@/components/primitives";
 import { UserAvatar } from "@/components/workspace/UserAvatar";
+import { MentionTextarea } from "@/components/workspace/MentionTextarea";
 import { cn } from "@/lib/utils";
 
 type CommentPaneProps = {
@@ -41,65 +42,15 @@ export function CommentPane({
   onDeleteComment,
   onReactComment,
 }: CommentPaneProps) {
-  const [text, setText] = useState("");
-  const [mentionAnchor, setMentionAnchor] = useState<number | null>(null);
-  const [mentionQuery, setMentionQuery] = useState("");
-  const [mentionIndex, setMentionIndex] = useState(0);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const customerComments = customerId
     ? comments.filter((c) => c.customerId === customerId)
     : [];
 
-  const mentionUsers = mentionAnchor !== null
-    ? users.filter((u) =>
-        u.slackName.toLowerCase().includes(mentionQuery.toLowerCase()),
-      ).slice(0, 6)
-    : [];
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [customerComments.length]);
-
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    setText(val);
-    const cursor = e.target.selectionStart ?? val.length;
-    const beforeCursor = val.slice(0, cursor);
-    const atMatch = beforeCursor.match(/@(\w*)$/);
-    if (atMatch) {
-      setMentionAnchor(cursor - atMatch[0].length);
-      setMentionQuery(atMatch[1]);
-      setMentionIndex(0);
-    } else {
-      setMentionAnchor(null);
-      setMentionQuery("");
-    }
-  };
-
-  const insertMention = (user: AppUser) => {
-    if (mentionAnchor === null) return;
-    const before = text.slice(0, mentionAnchor);
-    const after = text.slice(mentionAnchor + 1 + mentionQuery.length);
-    const newText = `${before}@${user.slackName} ${after}`;
-    setText(newText);
-    setMentionAnchor(null);
-    setMentionQuery("");
-    setTimeout(() => {
-      const pos = mentionAnchor + user.slackName.length + 2;
-      textareaRef.current?.setSelectionRange(pos, pos);
-      textareaRef.current?.focus();
-    }, 0);
-  };
-
-  const handleSubmit = () => {
-    const trimmed = text.trim();
-    if (!trimmed || !customerId) return;
-    onAddComment(customerId, trimmed);
-    setText("");
-    setMentionAnchor(null);
-  };
 
   if (!pane4Open) return null;
 
@@ -137,85 +88,19 @@ export function CommentPane({
         </div>
       </ScrollArea>
 
-      <div className="relative shrink-0 border-t border-border p-3">
+      <div className="shrink-0 border-t border-border p-3">
         {!customerId ? (
           <p className="text-center text-xs text-muted-foreground">
             顧客を選択するとメモを書けます
           </p>
         ) : (
-          <div className="flex flex-col gap-2">
-            {/* メンションピッカー */}
-            {mentionAnchor !== null && mentionUsers.length > 0 && (
-              <div className="absolute bottom-full left-3 right-3 mb-1 z-50 rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
-                {mentionUsers.map((u, i) => (
-                  <button
-                    key={u.id}
-                    className={cn(
-                      "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors",
-                      i === mentionIndex
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted",
-                    )}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      insertMention(u);
-                    }}
-                    onMouseEnter={() => setMentionIndex(i)}
-                  >
-                    <UserAvatar user={u} size="sm" />
-                    <span>@{u.slackName}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            <Textarea
-              ref={textareaRef}
-              value={text}
-              onChange={handleTextChange}
-              onKeyDown={(e) => {
-                if (mentionAnchor !== null && mentionUsers.length > 0) {
-                  if (e.key === "ArrowDown") {
-                    e.preventDefault();
-                    setMentionIndex((i) => Math.min(i + 1, mentionUsers.length - 1));
-                    return;
-                  }
-                  if (e.key === "ArrowUp") {
-                    e.preventDefault();
-                    setMentionIndex((i) => Math.max(i - 1, 0));
-                    return;
-                  }
-                  if (e.key === "Enter" || e.key === "Tab") {
-                    e.preventDefault();
-                    insertMention(mentionUsers[mentionIndex]);
-                    return;
-                  }
-                  if (e.key === "Escape") {
-                    setMentionAnchor(null);
-                    return;
-                  }
-                }
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit();
-                }
-              }}
-              onBlur={() => {
-                setTimeout(() => setMentionAnchor(null), 150);
-              }}
-              placeholder="コメントを入力… (Enter で送信)"
-              rows={3}
-              className="resize-none text-sm"
-            />
-            <Button
-              size="sm"
-              onClick={handleSubmit}
-              disabled={!text.trim()}
-              className="self-end bg-selection text-selection-foreground hover:bg-selection/90"
-            >
-              <Send className="size-3" />
-              送信
-            </Button>
-          </div>
+          <MentionTextarea
+            users={users}
+            placeholder="コメントを入力… (Enter で送信)"
+            onSubmit={(text) => {
+              if (customerId) onAddComment(customerId, text);
+            }}
+          />
         )}
       </div>
     </div>

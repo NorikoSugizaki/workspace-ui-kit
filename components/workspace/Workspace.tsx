@@ -25,6 +25,7 @@ import { DealDetailPane } from "@/components/workspace/DealDetailPane";
 import { CommentPane } from "@/components/workspace/CommentPane";
 import { UserPickerDialog } from "@/components/workspace/UserPickerDialog";
 import { CUSTOMER_PANE_LABELS } from "@/lib/labels";
+import { supabase } from "@/lib/supabase";
 
 // ===== ユニークID生成 =====
 const uid = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -125,25 +126,17 @@ export function Workspace({
   const [users, setUsers] = useState<AppUser[]>(initialUsers);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showUserPicker, setShowUserPicker] = useState(false);
-  // ロード完了前に保存エフェクトが localStorage を上書きしないためのフラグ
   const [hydrated, setHydrated] = useState(false);
 
-  // localStorage からのロードはマウント後（hydration後）に行い、サーバーと一致させる
-  // initialComments にある ID は必ず保持しつつ、localStorage の投稿とマージする
+  // Supabase 同期用 refs
+  const latestCustomersRef = useRef<Customer[]>(initialCustomers);
+  const prevCustomersRef = useRef<Customer[]>(initialCustomers);
+  const pendingSyncIdsRef = useRef<Set<string>>(new Set());
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevCommentsRef = useRef<Comment[]>(initialComments);
+  latestCustomersRef.current = customers;
+
   useEffect(() => {
-    setCustomers(loadFromStorage(CUSTOMERS_KEY, customersSchema, initialCustomers));
-
-    // localStorage にデータがあればそれだけを使う（JSON とのマージなし）
-    // ← 削除したコメントが JSON から復活しないようにする
-    const rawComments = typeof window !== "undefined" ? localStorage.getItem(COMMENTS_KEY) : null;
-    setComments(
-      rawComments !== null
-        ? loadFromStorage(COMMENTS_KEY, commentsSchema, initialComments)
-        : initialComments,
-    );
-
-    // ユーザーはサーバー（users.json）が正とするため localStorage は使わない
-
     // カレントユーザー
     const savedUserId = typeof window !== "undefined"
       ? localStorage.getItem(CURRENT_USER_KEY)
@@ -163,19 +156,92 @@ export function Workspace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // hydrated が true になるまで保存しない（初期値で localStorage を上書き防止）
+  // 顧客変更を Supabase に同期（デバウンス upsert + 即時 delete）
   useEffect(() => {
     if (!hydrated) return;
-    try {
-      localStorage.setItem(CUSTOMERS_KEY, JSON.stringify(customers));
-    } catch (e) {
-      console.warn("顧客データの保存に失敗しました（容量不足の可能性）:", e);
-    }
+    const prev = prevCustomersRef.current;
+    prevCustomersRef.current = customers;
+
+    // 削除された顧客を即時削除
+    prev.forEach((prevC) => {
+      if (!customers.find((c) => c.id === prevC.id)) {
+        supabase.from("customers").delete().eq("id", prevC.id).then(({ error }) => {
+          if (error) console.warn("顧客削除失敗:", error);
+        });
+      }
+    });
+
+    // 変更された顧客IDを pending に追加
+    customers.forEach((c) => {
+      const prevC = prev.find((p) => p.id === c.id);
+      if (!prevC || JSON.stringify(prevC) !== JSON.stringify(c)) {
+        pendingSyncIdsRef.current.add(c.id);
+      }
+    });
+
+    if (pendingSyncIdsRef.current.size === 0) return;
+
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => {
+      const idsToSync = [...pendingSyncIdsRef.current];
+      pendingSyncIdsRef.current.clear();
+      const toSync = latestCustomersRef.current.filter((c) => idsToSync.includes(c.id));
+      toSync.forEach((customer) => {
+        supabase.from("customers").upsert({
+          id: customer.id,
+          name: customer.name,
+          furigana: customer.furigana,
+          basic_links: customer.basicLinks,
+          basic_info: customer.basicInfo ?? null,
+          smarthr_info: customer.smartHRInfo ?? null,
+          slack_info: customer.slackInfo ?? null,
+          sfdc_info: customer.sfdcInfo ?? null,
+          deals: customer.deals,
+        }).then(({ error }) => {
+          if (error) console.warn("顧客同期失敗:", error);
+        });
+      });
+    }, 1500);
   }, [customers, hydrated]);
 
+  // コメント変更を Supabase に同期（即時）
   useEffect(() => {
     if (!hydrated) return;
-    try { localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments)); } catch {}
+    const prev = prevCommentsRef.current;
+    prevCommentsRef.current = comments;
+
+    comments.forEach((c) => {
+      const prevC = prev.find((p) => p.id === c.id);
+      if (!prevC) {
+        supabase.from("comments").insert({
+          id: c.id,
+          customer_id: c.customerId,
+          text: c.text,
+          author: c.author,
+          created_at: c.createdAt,
+          edited_at: c.editedAt ?? null,
+          reactions: c.reactions,
+        }).then(({ error }) => {
+          if (error) console.warn("コメント追加失敗:", error);
+        });
+      } else if (JSON.stringify(prevC) !== JSON.stringify(c)) {
+        supabase.from("comments").update({
+          text: c.text,
+          edited_at: c.editedAt ?? null,
+          reactions: c.reactions,
+        }).eq("id", c.id).then(({ error }) => {
+          if (error) console.warn("コメント更新失敗:", error);
+        });
+      }
+    });
+
+    prev.forEach((prevC) => {
+      if (!comments.find((c) => c.id === prevC.id)) {
+        supabase.from("comments").delete().eq("id", prevC.id).then(({ error }) => {
+          if (error) console.warn("コメント削除失敗:", error);
+        });
+      }
+    });
   }, [comments, hydrated]);
 
   // ユーザーは /api/users (users.json) に保存するため localStorage への書き込みは行わない

@@ -1,0 +1,259 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  /* `--font-inter` は next/font/google（app/layout.tsx）が <html> に注入する CSS 変数。
+     欧文・数字は Inter、日本語はシステムの日本語フォントに自然にフォールバックする。 */
+  --font-sans:
+    var(--font-inter), "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic UI",
+    system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  /* font-sans と同じ。見出し専用フォントに切り替える場合はここを変更 */
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-selection: var(--selection);
+  --color-selection-foreground: var(--selection-foreground);
+  --color-canvas: var(--canvas);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --font-serif: "Georgia", serif;
+  --radius: 0.625rem;
+  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+  --tracking-normal: var(--tracking-normal);
+  --shadow-2xl: var(--shadow-2xl);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-md: var(--shadow-md);
+  --shadow: var(--shadow);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-2xs: var(--shadow-2xs);
+  --spacing: var(--spacing);
+  --letter-spacing: var(--letter-spacing);
+  --shadow-offset-y: var(--shadow-offset-y);
+  --shadow-offset-x: var(--shadow-offset-x);
+  --shadow-spread: var(--shadow-spread);
+  --shadow-blur: var(--shadow-blur);
+  --shadow-opacity: var(--shadow-opacity);
+  --color-shadow-color: var(--shadow-color);
+  --color-destructive-foreground: var(--destructive-foreground);
+}
+
+:root {
+  /* ===== SmartHR Design System カラー =====
+   * https://smarthr.design/basics/colors/
+   *
+   * Stone01 #f8f7f6 / Stone02 #edebe6 / Stone03 #aaa69f / Stone04 #4e4c49
+   * Aqua01  #d4f4f5 / Aqua02  #69d9de / Aqua03  #12abb1 / Aqua04  #0f7f85
+   * SmartHR Blue #00c4cc  /  Black #23221f  /  Momiji03 #ec5a55
+   */
+
+  /* 背景・テキスト */
+  --background: #f8f7f6;           /* Stone01: キャンバス全体 */
+  --foreground: #23221f;           /* Black: メインテキスト */
+  --card: #ffffff;                 /* White: カード・パネル */
+  --card-foreground: #23221f;
+  --canvas: #f8f7f6;
+  --popover: #ffffff;
+  --popover-foreground: #23221f;
+
+  /* プライマリ: ボタン等に使う落ち着いた濃い青（元のテンプレート色） */
+  --primary: oklch(0.3732 0.0635 258.276);
+  --primary-foreground: oklch(0.9816 0.0017 247.839);
+
+  /* セカンダリ: Stone02 */
+  --secondary: #edebe6;
+  --secondary-foreground: #23221f;
+
+  /* ミュート: Stone02 背景 / Stone04 テキスト */
+  --muted: #edebe6;
+  --muted-foreground: #4e4c49;     /* Stone04 */
+
+  /* アクセント（ホバー・選択）: Aqua01 背景 / Aqua04 テキスト */
+  --accent: #d4f4f5;               /* Aqua01 */
+  --accent-foreground: #0f7f85;    /* Aqua04 */
+
+  /* 破壊的操作: Momiji03 */
+  --destructive: #ec5a55;
+  --destructive-foreground: #ffffff;
+
+  /* ボーダー・インプット: Stone02 */
+  --border: #edebe6;
+  --input: #edebe6;
+
+  /* フォーカスリング: SmartHR Blue */
+  --ring: #00c4cc;
+
+  /* 選択状態（フィルターボタン・リスト選択行）: SmartHR Blue */
+  --selection: #00c4cc;
+  --selection-foreground: #ffffff;
+
+  /* チャート */
+  --chart-1: #00c4cc;
+  --chart-2: #12abb1;
+  --chart-3: #ff9900;
+  --chart-4: #69d9de;
+  --chart-5: #aaa69f;
+
+  --radius: 0.5rem;
+
+  /* サイドバー */
+  --sidebar: #edebe6;              /* Stone02 */
+  --sidebar-foreground: #23221f;
+  --sidebar-primary: #00c4cc;      /* SmartHR Blue: アクティブ */
+  --sidebar-primary-foreground: #23221f;
+  --sidebar-accent: #d4f4f5;       /* Aqua01: ホバー */
+  --sidebar-accent-foreground: #0f7f85;
+  --sidebar-border: #aaa69f;       /* Stone03 */
+  --sidebar-ring: #00c4cc;
+  --destructive-foreground: #ffffff;
+  --font-sans:
+    var(--font-inter), "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic UI",
+    system-ui, sans-serif;
+  --font-serif: "Georgia", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --shadow-color: #000000;
+  --shadow-opacity: 0.05;
+  --shadow-blur: 12px;
+  --shadow-spread: 0px;
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 4px;
+  --letter-spacing: 0;
+  --spacing: 0.25rem;
+  --shadow-2xs: 0px 4px 12px 0px hsl(0 0% 0% / 0.03);
+  --shadow-xs: 0px 4px 12px 0px hsl(0 0% 0% / 0.03);
+  --shadow-sm:
+    0px 4px 12px 0px hsl(0 0% 0% / 0.05), 0px 1px 2px -1px hsl(0 0% 0% / 0.05);
+  --shadow:
+    0px 4px 12px 0px hsl(0 0% 0% / 0.05), 0px 1px 2px -1px hsl(0 0% 0% / 0.05);
+  --shadow-md:
+    0px 4px 12px 0px hsl(0 0% 0% / 0.05), 0px 2px 4px -1px hsl(0 0% 0% / 0.05);
+  --shadow-lg:
+    0px 4px 12px 0px hsl(0 0% 0% / 0.05), 0px 4px 6px -1px hsl(0 0% 0% / 0.05);
+  --shadow-xl:
+    0px 4px 12px 0px hsl(0 0% 0% / 0.05), 0px 8px 10px -1px hsl(0 0% 0% / 0.05);
+  --shadow-2xl: 0px 4px 12px 0px hsl(0 0% 0% / 0.13);
+  --tracking-normal: 0;
+}
+
+.dark {
+  /* ダークモード: Stone04 ベースの暗い背景 + Aqua アクセント */
+  --background: #1a1a18;
+  --foreground: #f8f7f6;           /* Stone01: 明るいテキスト */
+  --card: #23221f;                 /* Black: カード背景 */
+  --card-foreground: #f8f7f6;
+  --canvas: #1a1a18;
+  --popover: #23221f;
+  --popover-foreground: #f8f7f6;
+  --primary: oklch(0.7441 0.1311 264.2789);
+  --primary-foreground: oklch(0.2077 0.0398 265.7549);
+  --secondary: #2e2d2a;
+  --secondary-foreground: #f8f7f6;
+  --muted: #2e2d2a;
+  --muted-foreground: #aaa69f;     /* Stone03 */
+  --accent: #0f4a4d;               /* Aqua04 暗め */
+  --accent-foreground: #69d9de;    /* Aqua02 */
+  --destructive: #ec5a55;
+  --destructive-foreground: #ffffff;
+  --border: #3a3936;
+  --input: #3a3936;
+  --ring: #00c4cc;
+  --selection: #00c4cc;
+  --selection-foreground: #ffffff;
+  --chart-1: #00c4cc;
+  --chart-2: #12abb1;
+  --chart-3: #ff9900;
+  --chart-4: #69d9de;
+  --chart-5: #aaa69f;
+  --sidebar: #1a1a18;
+  --sidebar-foreground: #f8f7f6;
+  --sidebar-primary: #00c4cc;
+  --sidebar-primary-foreground: #23221f;
+  --sidebar-accent: #0f4a4d;
+  --sidebar-accent-foreground: #69d9de;
+  --sidebar-border: #3a3936;
+  --sidebar-ring: #00c4cc;
+  --radius: 0.5rem;
+  --font-sans:
+    var(--font-inter), "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic UI",
+    system-ui, sans-serif;
+  --font-serif: "Georgia", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --shadow-color: #000000;
+  --shadow-opacity: 0.3;
+  --shadow-blur: 20px;
+  --shadow-spread: 0px;
+  --shadow-offset-x: 0px;
+  --shadow-offset-y: 10px;
+  --letter-spacing: 0;
+  --spacing: 0.25rem;
+  --shadow-2xs: 0px 10px 20px 0px hsl(0 0% 0% / 0.15);
+  --shadow-xs: 0px 10px 20px 0px hsl(0 0% 0% / 0.15);
+  --shadow-sm:
+    0px 10px 20px 0px hsl(0 0% 0% / 0.3), 0px 1px 2px -1px hsl(0 0% 0% / 0.3);
+  --shadow:
+    0px 10px 20px 0px hsl(0 0% 0% / 0.3), 0px 1px 2px -1px hsl(0 0% 0% / 0.3);
+  --shadow-md:
+    0px 10px 20px 0px hsl(0 0% 0% / 0.3), 0px 2px 4px -1px hsl(0 0% 0% / 0.3);
+  --shadow-lg:
+    0px 10px 20px 0px hsl(0 0% 0% / 0.3), 0px 4px 6px -1px hsl(0 0% 0% / 0.3);
+  --shadow-xl:
+    0px 10px 20px 0px hsl(0 0% 0% / 0.3), 0px 8px 10px -1px hsl(0 0% 0% / 0.3);
+  --shadow-2xl: 0px 10px 20px 0px hsl(0 0% 0% / 0.75);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    letter-spacing: var(--tracking-normal);
+    line-height: 1.65;
+  }
+  html {
+    @apply font-sans;
+  }
+}

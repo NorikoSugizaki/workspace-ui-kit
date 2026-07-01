@@ -1,0 +1,133 @@
+[
+  {
+    "id": "c-001",
+    "name": "株式会社アクア営業",
+    "furigana": "あくあえいぎょう",
+    "basicLinks": [
+      { "id": "bl-001-1", "label": "基本情報", "url": "", "isDefault": true },
+      { "id": "bl-001-2", "label": "Slack情報", "url": "", "isDefault": true },
+      { "id": "bl-001-3", "label": "SFDC情報", "url": "", "isDefault": true }
+    ],
+    "slackInfo": {
+      "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO01/p1748400000000001",
+      "channelName": "",
+      "inviteStatus": "",
+      "note": ""
+    },
+    "sfdcInfo": {
+      "url": "https://example.salesforce.com/lightning/r/Opportunity/DEM0000001/view"
+    },
+    "deals": [
+      {
+        "id": "d-001-1",
+        "name": "C000184_人事制度改定",
+        "links": []
+      },
+      {
+        "id": "d-001-2",
+        "name": "C000185_サーベイ設計",
+        "links": []
+      }
+    ]
+  },
+  {
+    "id": "c-002",
+    "name": "株式会社HRコンサルティング",
+    "furigana": "えいちあーるこんさるてぃんぐ",
+    "basicLinks": [
+      { "id": "bl-002-1", "label": "基本情報", "url": "", "isDefault": true },
+      { "id": "bl-002-2", "label": "Slack情報", "url": "", "isDefault": true },
+      { "id": "bl-002-3", "label": "SFDC情報", "url": "", "isDefault": true }
+    ],
+    "slackInfo": {
+      "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO02/p1748500000000001",
+      "channelName": "",
+      "inviteStatus": "",
+      "note": ""
+    },
+    "sfdcInfo": {
+      "url": "https://example.salesforce.com/lightning/r/Opportunity/DEM0000002/view"
+    },
+    "deals": []
+  },
+  {
+    "id": "c-003",
+    "name": "株式会社サンプル商事",
+    "furigana": "さんぷるしょうじ",
+    "basicLinks": [
+      { "id": "bl-003-1", "label": "基本情報", "url": "", "isDefault": true },
+      { "id": "bl-003-2", "label": "Slack情報", "url": "", "isDefault": true },
+      { "id": "bl-003-3", "label": "SFDC情報", "url": "", "isDefault": true }
+    ],
+    "slackInfo": {
+      "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO03/p1748600000000001",
+      "channelName": "",
+      "inviteStatus": "",
+      "note": ""
+    },
+    "sfdcInfo": {
+      "url": "https://example.salesforce.com/lightning/r/Opportunity/DEM0000003/view"
+    },
+    "deals": []
+  },
+  {
+    "id": "c-004",
+    "name": "テスト工業株式会社",
+    "furigana": "てすとこうぎょう",
+    "basicLinks": [
+      { "id": "bl-004-1", "label": "基本情報", "url": "", "isDefault": true },
+      { "id": "bl-004-2", "label": "Slack情報", "url": "", "isDefault": true },
+      { "id": "bl-004-3", "label": "SFDC情報", "url": "", "isDefault": true }
+    ],
+    "slackInfo": {
+      "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO04/p1748700000000001",
+      "channelName": "",
+      "inviteStatus": "",
+      "note": ""
+    },
+    "sfdcInfo": {
+      "url": "https://example.salesforce.com/lightning/r/Opportunity/DEM0000004/view"
+    },
+    "deals": []
+  },
+  {
+    "id": "c-005",
+    "name": "デモ物産株式会社",
+    "furigana": "でもぶっさん",
+    "basicLinks": [
+      { "id": "bl-005-1", "label": "基本情報", "url": "", "isDefault": true },
+      { "id": "bl-005-2", "label": "Slack情報", "url": "", "isDefault": true },
+      { "id": "bl-005-3", "label": "SFDC情報", "url": "", "isDefault": true }
+    ],
+    "slackInfo": {
+      "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO05/p1748800000000001",
+      "channelName": "",
+      "inviteStatus": "",
+      "note": ""
+    },
+    "sfdcInfo": {
+      "url": "https://example.salesforce.com/lightning/r/Opportunity/DEM0000005/view"
+    },
+    "deals": []
+  },
+  {
+    "id": "c-006",
+    "name": "株式会社ナビゲーション",
+    "furigana": "なびげーしょん",
+    "basicLinks": [
+      { "id": "bl-006-1", "label": "基本情報", "url": "", "isDefault": true },
+      { "id": "bl-006-2", "label": "Slack情報", "url": "", "isDefault": true },
+      { "id": "bl-006-3", "label": "SFDC情報", "url": "", "isDefault": true }
+    ],
+    "slackInfo": {
+      "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO06/p1748900000000001",
+      "channelName": "",
+      "inviteStatus": "",
+      "note": ""
+    },
+    "sfdcInfo": {
+      "url": "https://example.salesforce.com/lightning/r/Opportunity/DEM0000006/view"
+    },
+    "deals": []
+  }
+]

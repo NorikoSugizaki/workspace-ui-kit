@@ -1,0 +1,45 @@
+{
+  "channel": "C_DEMO",
+  "messages": [
+    {
+      "ts": "1748400000.000001",
+      "user": { "id": "U_TANAKA", "name": "tanaka", "avatar": "" },
+      "text": "コンサル_タレマネ導入支援案件相談\n@yamamoto（ヤマモト）\n\nご相談の対象企業を教えて下さい\n株式会社サンプル物流\n企業HPのURL\nhttps://example-logistics.co.jp/\n**SFDCの商談のURL**\nhttps://example.salesforce.com/lightning/r/Opportunity/DEMOXXXXXXXX/view\n**SFDCの取引責任者のURL**\nhttps://example.salesforce.com/lightning/r/Opportunity/DEMOXXXXXXXX/related/OpportunityContactRoles/view\nTierを教えて下さい\nME:501〜2,000名\n対象企業のSmartHR利用状況を教えて下さい\n未導入（導入時期は未定）\n請求資料（簡易版）を利用したか教えて下さい\nエンゲージメントサーベイ｜簡易版\nご相談事項を教えて下さい\nお客様に組織・人事関連全般の提案ができないか相談したい、エンゲージメントサーベイに関する相談がしたい、その他",
+      "files": [],
+      "replyCount": 4,
+      "isRoot": true
+    },
+    {
+      "ts": "1748486100.000002",
+      "user": { "id": "U_YAMAMOTO", "name": "yamamoto_30日PM不在", "avatar": "" },
+      "text": ":consulting: :yarimasu:",
+      "files": [],
+      "replyCount": 0,
+      "isRoot": false
+    },
+    {
+      "ts": "1748486160.000003",
+      "user": { "id": "U_YAMAMOTO", "name": "yamamoto_30日PM不在", "avatar": "" },
+      "text": "@tanaka（タナカ） :otukare1:\nご連絡ありがとうございます！\n\n👇 の日時に同席できるか否かの確認・調整中のため :syousyouomatiwo: :pray-pop:\n&gt; 6月 5日（金曜日）午前11:00〜午後12:00\n@noriko",
+      "files": [],
+      "replyCount": 0,
+      "isRoot": false
+    },
+    {
+      "ts": "1748659680.000004",
+      "user": { "id": "U_YAMAMOTO", "name": "yamamoto_30日PM不在", "avatar": "" },
+      "text": "@tanaka（タナカ） :otukare1:\n:omatase_site_orimasu:\n本件、@mochimochi sanにご対応いただきます！",
+      "files": [],
+      "replyCount": 0,
+      "isRoot": false
+    },
+    {
+      "ts": "1748660400.000005",
+      "user": { "id": "U_YAMAMOTO", "name": "yamamoto_30日PM不在", "avatar": "" },
+      "text": "6月 5日（金曜日）午前11:00〜午後12:00 mochimochiさんに :google_calender_new: インビテーション送付をお願いできますでしょうか :yorosikuonegaisimasu_:",
+      "files": [],
+      "replyCount": 0,
+      "isRoot": false
+    }
+  ]
+}

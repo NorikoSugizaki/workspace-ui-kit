@@ -187,6 +187,7 @@ export function Workspace({
       pendingSyncIdsRef.current.clear();
       const toSync = latestCustomersRef.current.filter((c) => idsToSync.includes(c.id));
       toSync.forEach((customer) => {
+        console.log("[sync] upsert 開始:", customer.id);
         supabase.from("customers").upsert({
           id: customer.id,
           name: customer.name,
@@ -198,10 +199,14 @@ export function Workspace({
           sfdc_info: customer.sfdcInfo ?? null,
           deals: customer.deals,
         }).then(({ error }) => {
-          if (error) console.warn("顧客同期失敗:", error);
+          if (error) {
+            console.error("[sync] 顧客同期失敗:", error);
+          } else {
+            console.log("[sync] 顧客同期成功:", customer.id);
+          }
         });
       });
-    }, 1500);
+    }, 500);
   }, [customers, hydrated]);
 
   // コメント変更を Supabase に同期（即時）

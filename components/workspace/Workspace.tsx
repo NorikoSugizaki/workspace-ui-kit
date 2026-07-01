@@ -125,6 +125,9 @@ export function Workspace({
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [authEmail, setAuthEmail] = useState<string | null>(null);
+  const [unreadMentions, setUnreadMentions] = useState(0);
+  const currentUserIdRef = useRef<string | null>(null);
+  currentUserIdRef.current = currentUserId;
   const [hydrated, setHydrated] = useState(false);
 
   // Supabase 同期用 refs
@@ -168,6 +171,67 @@ export function Workspace({
     return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Service Worker 登録（PWA）
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+    // アプリを開いたらバッジをリセット
+    const clearBadge = () => {
+      setUnreadMentions(0);
+      if ("clearAppBadge" in navigator) {
+        (navigator as Navigator & { clearAppBadge: () => void }).clearAppBadge();
+      }
+    };
+    window.addEventListener("focus", clearBadge);
+    clearBadge();
+    return () => window.removeEventListener("focus", clearBadge);
+  }, []);
+
+  // Supabase リアルタイム購読 + Badging API
+  useEffect(() => {
+    if (!currentUserId) return;
+    const currentUser = users.find((u) => u.id === currentUserId);
+    if (!currentUser) return;
+
+    const channel = supabase
+      .channel("comments-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "comments" },
+        (payload) => {
+          const row = payload.new as { id: string; customer_id: string; text: string; author: string; created_at: string; reactions: [] };
+          // 自分以外が送ったコメントで自分がメンションされている場合
+          if (
+            row.author !== currentUser.slackName &&
+            row.text.includes(`@${currentUser.slackName}`)
+          ) {
+            setComments((prev) => {
+              if (prev.find((c) => c.id === row.id)) return prev;
+              return [...prev, {
+                id: row.id,
+                customerId: row.customer_id,
+                text: row.text,
+                author: row.author,
+                createdAt: row.created_at,
+                reactions: row.reactions ?? [],
+              }];
+            });
+            setUnreadMentions((n) => {
+              const next = n + 1;
+              if ("setAppBadge" in navigator) {
+                (navigator as Navigator & { setAppBadge: (n: number) => void }).setAppBadge(next);
+              }
+              return next;
+            });
+          }
+        },
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [currentUserId, users]);
 
   // 顧客変更を Supabase に同期（デバウンス upsert + 即時 delete）
   useEffect(() => {

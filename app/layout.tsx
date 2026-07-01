@@ -14,6 +14,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "案件管理ポータル",
   description: "案件・顧客情報管理ポータル",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {

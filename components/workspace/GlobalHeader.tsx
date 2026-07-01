@@ -2,6 +2,16 @@
 
 import { useState } from "react";
 import { Settings, LogOut, ShieldCheck } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { type AppUser } from "@/lib/schema";
 import {
@@ -45,6 +55,7 @@ export function GlobalHeader({
   onDeleteUser,
 }: GlobalHeaderProps) {
   const [userMgmtOpen, setUserMgmtOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   return (
     <>
@@ -112,13 +123,30 @@ export function GlobalHeader({
                 ユーザー管理
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={onSwitchUser}>
+            <DropdownMenuItem onClick={() => setLogoutConfirmOpen(true)} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-3.5 w-3.5" />
-              ユーザーを切り替え
+              ログアウト
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </header>
+
+      <AlertDialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ログアウトしますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              ログアウトするとメールアドレスでの再ログインが必要になります。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction onClick={onSwitchUser} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              ログアウト
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <UserManagementDialog
         open={userMgmtOpen}

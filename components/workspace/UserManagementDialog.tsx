@@ -225,6 +225,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       setAvatarDataUrl(ev.target?.result as string);
+      setIsDirty(true);
     };
     reader.readAsDataURL(file);
   };
@@ -307,7 +308,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
           {avatarDataUrl && (
             <button
               type="button"
-              onClick={() => setAvatarDataUrl("")}
+              onClick={() => { setAvatarDataUrl(""); setIsDirty(true); }}
               className="text-[11px] text-muted-foreground hover:text-destructive"
             >
               削除

@@ -465,6 +465,7 @@ function ContactCard({ contact, onUpdate, onDelete }: ContactCardProps) {
   const [local, setLocal] = useState({
     name: contact.name,
     furigana: contact.furigana,
+    affiliation: contact.affiliation ?? "",
     role: contact.role,
   });
   const [hasChanges, setHasChanges] = useState(false);
@@ -479,10 +480,10 @@ function ContactCard({ contact, onUpdate, onDelete }: ContactCardProps) {
   // hydration後に親データが更新されたとき、未編集なら同期する
   useEffect(() => {
     if (!hasChanges) {
-      setLocal({ name: contact.name, furigana: contact.furigana, role: contact.role });
+      setLocal({ name: contact.name, furigana: contact.furigana, affiliation: contact.affiliation ?? "", role: contact.role });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contact.name, contact.furigana, contact.role]);
+  }, [contact.name, contact.furigana, contact.affiliation, contact.role]);
 
   const HIRAGANA_RE = /^[ぁ-ゖゝゞー\s]*$/;
 
@@ -495,7 +496,7 @@ function ContactCard({ contact, onUpdate, onDelete }: ContactCardProps) {
   };
 
   const handleReset = () => {
-    setLocal({ name: contact.name, furigana: contact.furigana, role: contact.role });
+    setLocal({ name: contact.name, furigana: contact.furigana, affiliation: contact.affiliation ?? "", role: contact.role });
     setHasChanges(false);
     setFuriganaError(null);
   };
@@ -639,6 +640,18 @@ function ContactCard({ contact, onUpdate, onDelete }: ContactCardProps) {
             <p className="text-[10px] text-destructive">{furiganaError}</p>
           )}
         </div>
+        <Input
+          value={local.affiliation}
+          onChange={(e) => { setLocal((prev) => ({ ...prev, affiliation: e.target.value })); setHasChanges(true); }}
+          onFocus={() => setHasChanges(true)}
+          onBlur={() => { if (hasChanges && !furiganaError) handleSave(); }}
+          placeholder="所属"
+          aria-label="所属"
+          className="h-7 bg-card text-xs"
+          onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
+          autoComplete="off"
+          data-1p-ignore
+        />
         <Input
           value={local.role}
           onChange={(e) => { setLocal((prev) => ({ ...prev, role: e.target.value })); setHasChanges(true); }}

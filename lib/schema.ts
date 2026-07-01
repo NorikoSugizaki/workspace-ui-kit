@@ -31,6 +31,7 @@ export const contactPersonSchema = z.object({
   id: z.string(),
   name: z.string(),
   furigana: z.string(),
+  affiliation: z.string().optional(),
   role: z.string(),
   imageDataUrl: z.string().optional(),
 });

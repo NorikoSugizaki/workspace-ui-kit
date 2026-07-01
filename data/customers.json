@@ -8,6 +8,21 @@
       { "id": "bl-001-2", "label": "Slack情報", "url": "", "isDefault": true },
       { "id": "bl-001-3", "label": "SFDC情報", "url": "", "isDefault": true }
     ],
+    "basicInfo": {
+      "companyName": "",
+      "address": "",
+      "url": "",
+      "contacts": []
+    },
+    "smartHRInfo": {
+      "tier": "",
+      "shrIntroduction": "",
+      "consultingContract": "",
+      "salesRecord": "",
+      "sales": [],
+      "cs": [],
+      "consultants": []
+    },
     "slackInfo": {
       "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO01/p1748400000000001",
       "channelName": "",
@@ -39,6 +54,21 @@
       { "id": "bl-002-2", "label": "Slack情報", "url": "", "isDefault": true },
       { "id": "bl-002-3", "label": "SFDC情報", "url": "", "isDefault": true }
     ],
+    "basicInfo": {
+      "companyName": "",
+      "address": "",
+      "url": "",
+      "contacts": []
+    },
+    "smartHRInfo": {
+      "tier": "",
+      "shrIntroduction": "",
+      "consultingContract": "",
+      "salesRecord": "",
+      "sales": [],
+      "cs": [],
+      "consultants": []
+    },
     "slackInfo": {
       "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO02/p1748500000000001",
       "channelName": "",
@@ -59,6 +89,21 @@
       { "id": "bl-003-2", "label": "Slack情報", "url": "", "isDefault": true },
       { "id": "bl-003-3", "label": "SFDC情報", "url": "", "isDefault": true }
     ],
+    "basicInfo": {
+      "companyName": "",
+      "address": "",
+      "url": "",
+      "contacts": []
+    },
+    "smartHRInfo": {
+      "tier": "",
+      "shrIntroduction": "",
+      "consultingContract": "",
+      "salesRecord": "",
+      "sales": [],
+      "cs": [],
+      "consultants": []
+    },
     "slackInfo": {
       "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO03/p1748600000000001",
       "channelName": "",
@@ -79,6 +124,21 @@
       { "id": "bl-004-2", "label": "Slack情報", "url": "", "isDefault": true },
       { "id": "bl-004-3", "label": "SFDC情報", "url": "", "isDefault": true }
     ],
+    "basicInfo": {
+      "companyName": "",
+      "address": "",
+      "url": "",
+      "contacts": []
+    },
+    "smartHRInfo": {
+      "tier": "",
+      "shrIntroduction": "",
+      "consultingContract": "",
+      "salesRecord": "",
+      "sales": [],
+      "cs": [],
+      "consultants": []
+    },
     "slackInfo": {
       "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO04/p1748700000000001",
       "channelName": "",
@@ -99,6 +159,21 @@
       { "id": "bl-005-2", "label": "Slack情報", "url": "", "isDefault": true },
       { "id": "bl-005-3", "label": "SFDC情報", "url": "", "isDefault": true }
     ],
+    "basicInfo": {
+      "companyName": "",
+      "address": "",
+      "url": "",
+      "contacts": []
+    },
+    "smartHRInfo": {
+      "tier": "",
+      "shrIntroduction": "",
+      "consultingContract": "",
+      "salesRecord": "",
+      "sales": [],
+      "cs": [],
+      "consultants": []
+    },
     "slackInfo": {
       "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO05/p1748800000000001",
       "channelName": "",
@@ -119,6 +194,21 @@
       { "id": "bl-006-2", "label": "Slack情報", "url": "", "isDefault": true },
       { "id": "bl-006-3", "label": "SFDC情報", "url": "", "isDefault": true }
     ],
+    "basicInfo": {
+      "companyName": "",
+      "address": "",
+      "url": "",
+      "contacts": []
+    },
+    "smartHRInfo": {
+      "tier": "",
+      "shrIntroduction": "",
+      "consultingContract": "",
+      "salesRecord": "",
+      "sales": [],
+      "cs": [],
+      "consultants": []
+    },
     "slackInfo": {
       "channelUrl": "https://demo-workspace.slack.com/archives/C_DEMO06/p1748900000000001",
       "channelName": "",

@@ -383,7 +383,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
         >
           保存
         </Button>
-        {isNew && email.trim() && (
+        {email.trim() && (
           <Button
             size="sm"
             className="h-7 gap-1 text-xs"

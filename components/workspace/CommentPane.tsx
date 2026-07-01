@@ -252,7 +252,7 @@ function CommentText({ text }: { text: string }) {
       parts.push(
         <span
           key={key++}
-          className="rounded px-1 py-0.5 bg-primary/10 text-primary font-medium text-[0.85em]"
+          className="inline-flex items-center rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary leading-5"
         >
           {match[3]}
         </span>,

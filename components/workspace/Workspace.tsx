@@ -23,7 +23,7 @@ import { CustomerListPane } from "@/components/workspace/CustomerListPane";
 import { CustomerPane2 } from "@/components/workspace/CustomerPane2";
 import { DealDetailPane } from "@/components/workspace/DealDetailPane";
 import { CommentPane } from "@/components/workspace/CommentPane";
-import { LoginForm } from "@/components/workspace/LoginForm";
+import { UserPickerDialog } from "@/components/workspace/UserPickerDialog";
 import { CUSTOMER_PANE_LABELS } from "@/lib/labels";
 import { supabase } from "@/lib/supabase";
 
@@ -123,8 +123,6 @@ export function Workspace({
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [users, setUsers] = useState<AppUser[]>(initialUsers);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [authEmail, setAuthEmail] = useState<string | null>(null);
   const [unreadMentions, setUnreadMentions] = useState(0);
   const currentUserIdRef = useRef<string | null>(null);
   currentUserIdRef.current = currentUserId;
@@ -146,29 +144,6 @@ export function Workspace({
     setPane4Width(savedPaneWidths.p4);
     setHydrated(true);
 
-    // Supabase Auth セッション確認
-    const resolveUser = (email: string | undefined) => {
-      setAuthEmail(email ?? null);
-      if (!email) { setCurrentUserId(null); return; }
-      setUsers((prev) => {
-        const match = prev.find((u) => u.email === email);
-        if (match) setCurrentUserId(match.id);
-        else setCurrentUserId(null);
-        return prev;
-      });
-    };
-
-    supabase.auth.getSession().then(({ data }) => {
-      resolveUser(data.session?.user?.email);
-      setAuthChecked(true);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      resolveUser(session?.user?.email);
-      setAuthChecked(true);
-    });
-
-    return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -890,9 +865,7 @@ export function Workspace({
   }, []);
 
   const switchUser = useCallback(() => {
-    supabase.auth.signOut().then(() => {
-      setCurrentUserId(null);
-    });
+    setCurrentUserId(null);
   }, []);
 
   const togglePane4 = useCallback(() => setPane4Open((v) => !v), []);
@@ -906,37 +879,14 @@ export function Workspace({
 
   const currentUser = users.find((u) => u.id === currentUserId) ?? null;
 
-  // 認証確認前はローディング、未ログインはLoginFormを表示
-  if (!authChecked) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-
   if (!currentUserId) {
-    // ログイン済みだがユーザーテーブルに未登録
-    if (authEmail) {
-      return (
-        <div className="flex min-h-screen items-center justify-center bg-background">
-          <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border border-border bg-card p-8 shadow-sm text-center">
-            <p className="text-sm font-medium">アクセスできません</p>
-            <p className="text-xs text-muted-foreground">
-              <strong>{authEmail}</strong> はメンバーリストに登録されていません。<br />
-              管理者に連絡してください。
-            </p>
-            <button
-              onClick={() => supabase.auth.signOut().then(() => setAuthEmail(null))}
-              className="text-xs text-primary underline"
-            >
-              別のメールアドレスでログイン
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return <LoginForm workspaceName={workspace.name} />;
+    return (
+      <UserPickerDialog
+        open={true}
+        users={users}
+        onSelect={setCurrentUserId}
+      />
+    );
   }
 
   return (

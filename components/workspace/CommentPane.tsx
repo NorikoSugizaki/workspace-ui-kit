@@ -42,21 +42,63 @@ export function CommentPane({
   onReactComment,
 }: CommentPaneProps) {
   const [text, setText] = useState("");
+  const [mentionAnchor, setMentionAnchor] = useState<number | null>(null);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const customerComments = customerId
     ? comments.filter((c) => c.customerId === customerId)
     : [];
 
+  const mentionUsers = mentionAnchor !== null
+    ? users.filter((u) =>
+        u.slackName.toLowerCase().includes(mentionQuery.toLowerCase()),
+      ).slice(0, 6)
+    : [];
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [customerComments.length]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setText(val);
+    const cursor = e.target.selectionStart ?? val.length;
+    const beforeCursor = val.slice(0, cursor);
+    const atMatch = beforeCursor.match(/@(\w*)$/);
+    if (atMatch) {
+      setMentionAnchor(cursor - atMatch[0].length);
+      setMentionQuery(atMatch[1]);
+      setMentionIndex(0);
+    } else {
+      setMentionAnchor(null);
+      setMentionQuery("");
+    }
+  };
+
+  const insertMention = (user: AppUser) => {
+    if (mentionAnchor === null) return;
+    const before = text.slice(0, mentionAnchor);
+    const after = text.slice(mentionAnchor + 1 + mentionQuery.length);
+    const newText = `${before}@${user.slackName} ${after}`;
+    setText(newText);
+    setMentionAnchor(null);
+    setMentionQuery("");
+    setTimeout(() => {
+      const pos = mentionAnchor + user.slackName.length + 2;
+      textareaRef.current?.setSelectionRange(pos, pos);
+      textareaRef.current?.focus();
+    }, 0);
+  };
 
   const handleSubmit = () => {
     const trimmed = text.trim();
     if (!trimmed || !customerId) return;
     onAddComment(customerId, trimmed);
     setText("");
+    setMentionAnchor(null);
   };
 
   if (!pane4Open) return null;
@@ -78,13 +120,13 @@ export function CommentPane({
               <CommentBubble
                 key={comment.id}
                 comment={comment}
-                user={users.find((u) => u.name === comment.author) ?? null}
-                isOwn={comment.author === (currentUser?.name ?? CUSTOMER_PANE_LABELS.defaultAuthor)}
+                user={users.find((u) => u.slackName === comment.author || u.name === comment.author) ?? null}
+                isOwn={comment.author === (currentUser?.slackName ?? currentUser?.name ?? CUSTOMER_PANE_LABELS.defaultAuthor)}
                 canDelete={
-                  comment.author === (currentUser?.name ?? CUSTOMER_PANE_LABELS.defaultAuthor) ||
+                  comment.author === (currentUser?.slackName ?? currentUser?.name ?? CUSTOMER_PANE_LABELS.defaultAuthor) ||
                   (currentUser?.isAdmin ?? false)
                 }
-                currentUserName={currentUser?.name ?? CUSTOMER_PANE_LABELS.defaultAuthor}
+                currentUserName={currentUser?.slackName ?? currentUser?.name ?? CUSTOMER_PANE_LABELS.defaultAuthor}
                 onEdit={(text) => onEditComment(comment.id, text)}
                 onDelete={() => onDeleteComment(comment.id)}
                 onReact={(emoji) => onReactComment(comment.id, emoji)}
@@ -95,21 +137,70 @@ export function CommentPane({
         </div>
       </ScrollArea>
 
-      <div className="shrink-0 border-t border-border p-3">
+      <div className="relative shrink-0 border-t border-border p-3">
         {!customerId ? (
           <p className="text-center text-xs text-muted-foreground">
             顧客を選択するとメモを書けます
           </p>
         ) : (
           <div className="flex flex-col gap-2">
+            {/* メンションピッカー */}
+            {mentionAnchor !== null && mentionUsers.length > 0 && (
+              <div className="absolute bottom-full left-3 right-3 mb-1 z-50 rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
+                {mentionUsers.map((u, i) => (
+                  <button
+                    key={u.id}
+                    className={cn(
+                      "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors",
+                      i === mentionIndex
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-muted",
+                    )}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      insertMention(u);
+                    }}
+                    onMouseEnter={() => setMentionIndex(i)}
+                  >
+                    <UserAvatar user={u} size="sm" />
+                    <span>@{u.slackName}</span>
+                  </button>
+                ))}
+              </div>
+            )}
             <Textarea
+              ref={textareaRef}
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={handleTextChange}
               onKeyDown={(e) => {
+                if (mentionAnchor !== null && mentionUsers.length > 0) {
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setMentionIndex((i) => Math.min(i + 1, mentionUsers.length - 1));
+                    return;
+                  }
+                  if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setMentionIndex((i) => Math.max(i - 1, 0));
+                    return;
+                  }
+                  if (e.key === "Enter" || e.key === "Tab") {
+                    e.preventDefault();
+                    insertMention(mentionUsers[mentionIndex]);
+                    return;
+                  }
+                  if (e.key === "Escape") {
+                    setMentionAnchor(null);
+                    return;
+                  }
+                }
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSubmit();
                 }
+              }}
+              onBlur={() => {
+                setTimeout(() => setMentionAnchor(null), 150);
               }}
               placeholder="コメントを入力… (Enter で送信)"
               rows={3}
@@ -131,29 +222,42 @@ export function CommentPane({
   );
 }
 
-// [テキスト](URL) 形式のリンクをレンダリングするコンポーネント
+// リンク・@メンションをレンダリングするコンポーネント
 function CommentText({ text }: { text: string }) {
-  const LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+  const TOKEN_RE = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)|(@\w+)/g;
   const parts: React.ReactNode[] = [];
   let last = 0;
   let match: RegExpExecArray | null;
   let key = 0;
 
-  while ((match = LINK_RE.exec(text)) !== null) {
+  while ((match = TOKEN_RE.exec(text)) !== null) {
     if (match.index > last) {
       parts.push(text.slice(last, match.index));
     }
-    parts.push(
-      <a
-        key={key++}
-        href={match[2]}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-primary underline underline-offset-2 hover:text-primary/80"
-      >
-        {match[1]}
-      </a>,
-    );
+    if (match[1] && match[2]) {
+      // [label](url) リンク
+      parts.push(
+        <a
+          key={key++}
+          href={match[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline underline-offset-2 hover:text-primary/80"
+        >
+          {match[1]}
+        </a>,
+      );
+    } else if (match[3]) {
+      // @メンション
+      parts.push(
+        <span
+          key={key++}
+          className="rounded px-1 py-0.5 bg-primary/10 text-primary font-medium text-[0.85em]"
+        >
+          {match[3]}
+        </span>,
+      );
+    }
     last = match.index + match[0].length;
   }
   if (last < text.length) parts.push(text.slice(last));

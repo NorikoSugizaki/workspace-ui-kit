@@ -216,6 +216,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
   const [inviteSent, setInviteSent] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [emailFocused, setEmailFocused] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -238,6 +239,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
       avatarDataUrl: avatarDataUrl || undefined,
       isAdmin,
     };
+    setIsDirty(false);
     onSave(data);
 
     if (sendInvite && email.trim()) {
@@ -355,7 +357,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
         <label className="w-24 shrink-0 text-xs text-muted-foreground">管理者</label>
         <button
           type="button"
-          onClick={() => setIsAdmin((v) => !v)}
+          onClick={() => { setIsAdmin((v) => !v); setIsDirty(true); }}
           className={cn(
             "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
             isAdmin ? "bg-primary" : "bg-muted",
@@ -378,7 +380,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
           キャンセル
         </Button>
         <Button
-          variant={emailFocused ? "default" : "outline"}
+          variant={emailFocused || isDirty ? "default" : "outline"}
           size="sm"
           className="h-7 text-xs"
           disabled={!canSave}
@@ -390,7 +392,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
           <Button
             size="sm"
             className="h-7 gap-1 text-xs"
-            disabled={!canSave || emailFocused}
+            disabled={!canSave || emailFocused || isDirty}
             onClick={handleSave(true)}
           >
             <Mail className="h-3 w-3" />

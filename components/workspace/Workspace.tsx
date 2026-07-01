@@ -202,11 +202,8 @@ export function Workspace({
         { event: "INSERT", schema: "public", table: "comments" },
         (payload) => {
           const row = payload.new as { id: string; customer_id: string; text: string; author: string; created_at: string; reactions: [] };
-          // 自分以外が送ったコメントで自分がメンションされている場合
-          if (
-            row.author !== currentUser.slackName &&
-            row.text.includes(`@${currentUser.slackName}`)
-          ) {
+          // 自分がメンションされている場合（テスト中は自分→自分も含む）
+          if (row.text.includes(`@${currentUser.slackName}`)) {
             setComments((prev) => {
               if (prev.find((c) => c.id === row.id)) return prev;
               return [...prev, {

@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Pencil, Trash2, Plus, Upload, ShieldCheck } from "lucide-react";
+import { Pencil, Trash2, Plus, Upload, ShieldCheck, Mail } from "lucide-react";
 
 import { type AppUser } from "@/lib/schema";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -68,6 +69,7 @@ export function UserManagementDialog({
                 <UserForm
                   key={user.id}
                   initial={user}
+                  isNew={false}
                   onSave={(data) => {
                     onEdit(user.id, data);
                     setEditingId(null);
@@ -88,6 +90,7 @@ export function UserManagementDialog({
 
             {adding && (
               <UserForm
+                isNew={true}
                 onSave={(data) => {
                   onAdd(data);
                   setAdding(false);
@@ -115,7 +118,7 @@ export function UserManagementDialog({
         open={!!deleteTarget}
         onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
         title="ユーザーを削除"
-        itemName={deleteTarget?.name ?? ""}
+        itemName={deleteTarget?.slackName ?? deleteTarget?.email ?? ""}
         onConfirm={() => {
           if (deleteTarget) onDelete(deleteTarget.id);
           setDeleteTarget(null);
@@ -140,12 +143,13 @@ function UserRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const displayName = user.slackName || user.name || user.email || "???";
   return (
     <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5">
       <UserAvatar user={user} size="md" />
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium text-foreground">{user.name}</span>
+          <span className="text-sm font-medium text-foreground">@{displayName}</span>
           {user.isAdmin && (
             <span className="flex items-center gap-0.5 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
               <ShieldCheck className="h-2.5 w-2.5" />
@@ -158,8 +162,8 @@ function UserRow({
             </span>
           )}
         </div>
-        {user.slackName && (
-          <span className="text-xs text-muted-foreground">@{user.slackName}</span>
+        {user.email && (
+          <span className="text-xs text-muted-foreground">{user.email}</span>
         )}
       </div>
       <div className="flex items-center gap-1 shrink-0">
@@ -192,15 +196,18 @@ function UserRow({
 
 type UserFormProps = {
   initial?: AppUser;
+  isNew: boolean;
   onSave: (data: Omit<AppUser, "id">) => void;
   onCancel: () => void;
 };
 
-function UserForm({ initial, onSave, onCancel }: UserFormProps) {
-  const [name, setName] = useState(initial?.name ?? "");
+function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
   const [slackName, setSlackName] = useState(initial?.slackName ?? "");
+  const [email, setEmail] = useState(initial?.email ?? "");
   const [avatarDataUrl, setAvatarDataUrl] = useState(initial?.avatarDataUrl ?? "");
   const [isAdmin, setIsAdmin] = useState(initial?.isAdmin ?? false);
+  const [inviteSent, setInviteSent] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -213,13 +220,54 @@ function UserForm({ initial, onSave, onCancel }: UserFormProps) {
     reader.readAsDataURL(file);
   };
 
-  const canSave = name.trim().length > 0;
+  const canSave = slackName.trim().length > 0;
+
+  const handleSave = async () => {
+    const data: Omit<AppUser, "id"> = {
+      name: slackName.trim(),
+      slackName: slackName.trim(),
+      email: email.trim() || undefined,
+      avatarDataUrl: avatarDataUrl || undefined,
+      isAdmin,
+    };
+    onSave(data);
+
+    // 新規ユーザーにはメールアドレスが入力されていれば招待メールを送信
+    if (isNew && email.trim()) {
+      try {
+        const { error } = await supabase.auth.signInWithOtp({
+          email: email.trim(),
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            shouldCreateUser: true,
+          },
+        });
+        if (error) {
+          setInviteError(`招待メール送信失敗: ${error.message}`);
+        } else {
+          setInviteSent(true);
+        }
+      } catch {
+        setInviteError("招待メール送信中にエラーが発生しました");
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-primary/30 bg-card px-3 py-3">
       <p className="text-xs font-semibold text-muted-foreground">
         {initial ? "ユーザーを編集" : "新しいユーザー"}
       </p>
+
+      {inviteSent && (
+        <div className="flex items-center gap-2 rounded-md bg-green-50 px-3 py-2 text-xs text-green-700">
+          <Mail className="h-3.5 w-3.5 shrink-0" />
+          招待メールを送信しました
+        </div>
+      )}
+      {inviteError && (
+        <p className="text-xs text-destructive">{inviteError}</p>
+      )}
 
       {/* アバター */}
       <div className="flex items-center gap-3">
@@ -232,7 +280,7 @@ function UserForm({ initial, onSave, onCancel }: UserFormProps) {
             />
           ) : (
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-lg font-semibold text-muted-foreground ring-2 ring-border">
-              {name ? name[0].toUpperCase() : "?"}
+              {slackName ? slackName[0].toUpperCase() : "?"}
             </div>
           )}
         </div>
@@ -266,21 +314,9 @@ function UserForm({ initial, onSave, onCancel }: UserFormProps) {
         />
       </div>
 
-      {/* 名前 */}
-      <div className="flex items-center gap-2">
-        <label className="w-24 shrink-0 text-xs text-muted-foreground">表示名 *</label>
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="例: Noriko"
-          className="h-8 text-sm"
-          autoFocus={!initial}
-        />
-      </div>
-
       {/* Slack名 */}
       <div className="flex items-center gap-2">
-        <label className="w-24 shrink-0 text-xs text-muted-foreground">Slack 名</label>
+        <label className="w-24 shrink-0 text-xs text-muted-foreground">Slack 名 *</label>
         <div className="relative flex-1">
           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">@</span>
           <Input
@@ -288,8 +324,21 @@ function UserForm({ initial, onSave, onCancel }: UserFormProps) {
             onChange={(e) => setSlackName(e.target.value)}
             placeholder="例: noriko.sugizaki"
             className="h-8 pl-6 text-sm"
+            autoFocus={!initial}
           />
         </div>
+      </div>
+
+      {/* メールアドレス */}
+      <div className="flex items-center gap-2">
+        <label className="w-24 shrink-0 text-xs text-muted-foreground">メール</label>
+        <Input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="例: noriko@example.com"
+          className="h-8 text-sm"
+        />
       </div>
 
       {/* 管理者 */}
@@ -323,16 +372,9 @@ function UserForm({ initial, onSave, onCancel }: UserFormProps) {
           size="sm"
           className="h-7 text-xs"
           disabled={!canSave}
-          onClick={() =>
-            onSave({
-              name: name.trim(),
-              slackName: slackName.trim(),
-              avatarDataUrl: avatarDataUrl || undefined,
-              isAdmin,
-            })
-          }
+          onClick={handleSave}
         >
-          保存
+          {isNew && email.trim() ? "保存して招待メール送信" : "保存"}
         </Button>
       </div>
     </div>

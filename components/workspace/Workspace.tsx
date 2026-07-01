@@ -23,7 +23,7 @@ import { CustomerListPane } from "@/components/workspace/CustomerListPane";
 import { CustomerPane2 } from "@/components/workspace/CustomerPane2";
 import { DealDetailPane } from "@/components/workspace/DealDetailPane";
 import { CommentPane } from "@/components/workspace/CommentPane";
-import { UserPickerDialog } from "@/components/workspace/UserPickerDialog";
+import { LoginForm } from "@/components/workspace/LoginForm";
 import { CUSTOMER_PANE_LABELS } from "@/lib/labels";
 import { supabase } from "@/lib/supabase";
 
@@ -101,8 +101,6 @@ type WorkspaceProps = {
 
 const CUSTOMERS_KEY = "workspace-customers-v1";
 const COMMENTS_KEY = "workspace-comments-v1";
-const CURRENT_USER_KEY = "workspace-current-user-v1";
-
 function loadFromStorage<T>(key: string, schema: { safeParse: (v: unknown) => { success: boolean; data?: T } }, fallback: T): T {
   if (typeof window === "undefined") return fallback;
   try {
@@ -125,7 +123,7 @@ export function Workspace({
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [users, setUsers] = useState<AppUser[]>(initialUsers);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [showUserPicker, setShowUserPicker] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   // Supabase 同期用 refs
@@ -137,22 +135,34 @@ export function Workspace({
   latestCustomersRef.current = customers;
 
   useEffect(() => {
-    // カレントユーザー
-    const savedUserId = typeof window !== "undefined"
-      ? localStorage.getItem(CURRENT_USER_KEY)
-      : null;
-    if (savedUserId) {
-      setCurrentUserId(savedUserId);
-    } else {
-      setShowUserPicker(true);
-    }
-    // ペイン幅もクライアント側でのみ復元
+    // ペイン幅をクライアント側でのみ復元
     const savedPaneWidths = loadPaneWidths();
     setPane1Width(savedPaneWidths.p1);
     setPane2Width(savedPaneWidths.p2);
     setPane4Width(savedPaneWidths.p4);
-
     setHydrated(true);
+
+    // Supabase Auth セッション確認
+    const resolveUser = (email: string | undefined) => {
+      if (!email) { setCurrentUserId(null); return; }
+      setUsers((prev) => {
+        const match = prev.find((u) => u.email === email);
+        if (match) setCurrentUserId(match.id);
+        return prev;
+      });
+    };
+
+    supabase.auth.getSession().then(({ data }) => {
+      resolveUser(data.session?.user?.email);
+      setAuthChecked(true);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      resolveUser(session?.user?.email);
+      setAuthChecked(true);
+    });
+
+    return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -801,14 +811,12 @@ export function Workspace({
 
   const selectCurrentUser = useCallback((userId: string) => {
     setCurrentUserId(userId);
-    setShowUserPicker(false);
-    try { localStorage.setItem(CURRENT_USER_KEY, userId); } catch {}
   }, []);
 
   const switchUser = useCallback(() => {
-    setCurrentUserId(null);
-    setShowUserPicker(true);
-    try { localStorage.removeItem(CURRENT_USER_KEY); } catch {}
+    supabase.auth.signOut().then(() => {
+      setCurrentUserId(null);
+    });
   }, []);
 
   const togglePane4 = useCallback(() => setPane4Open((v) => !v), []);
@@ -822,17 +830,25 @@ export function Workspace({
 
   const currentUser = users.find((u) => u.id === currentUserId) ?? null;
 
+  // 認証確認前はローディング、未ログインはLoginFormを表示
+  if (!authChecked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!currentUserId) {
+    return <LoginForm workspaceName={workspace.name} />;
+  }
+
   return (
     <SidebarProvider
       defaultOpen
       className="h-screen w-full overflow-hidden bg-background text-foreground"
       style={{ "--sidebar-width": `${pane1Width}px` } as React.CSSProperties}
     >
-      <UserPickerDialog
-        open={showUserPicker}
-        users={users}
-        onSelect={selectCurrentUser}
-      />
       <Pane1ResizeHandle
         width={pane1Width}
         onDrag={(d) => setPane1Width((w) => clamp(w + d, 160, 480))}

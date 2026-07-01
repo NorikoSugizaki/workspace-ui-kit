@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
 import { appUsersSchema } from "@/lib/schema";
 
-const USERS_FILE = path.join(process.cwd(), "data", "users.json");
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+);
 
 export async function GET() {
-  const raw = fs.readFileSync(USERS_FILE, "utf-8");
-  return NextResponse.json(JSON.parse(raw));
+  const { data, error } = await supabase.from("users").select("*");
+  if (error || !data) return NextResponse.json([]);
+  return NextResponse.json(
+    data.map((row) => ({
+      id: row.id,
+      name: row.name ?? row.slack_name ?? "",
+      slackName: row.slack_name ?? "",
+      email: row.email ?? undefined,
+      avatarDataUrl: row.avatar_data_url ?? undefined,
+      isAdmin: row.is_admin ?? false,
+    })),
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -16,6 +28,15 @@ export async function POST(req: NextRequest) {
   if (!result.success) {
     return NextResponse.json({ error: result.error.issues[0]?.message ?? "invalid" }, { status: 400 });
   }
-  fs.writeFileSync(USERS_FILE, JSON.stringify(result.data, null, 2), "utf-8");
+  const rows = result.data.map((u) => ({
+    id: u.id,
+    name: u.slackName || u.name || "",
+    slack_name: u.slackName,
+    email: u.email ?? null,
+    avatar_data_url: u.avatarDataUrl ?? null,
+    is_admin: u.isAdmin,
+  }));
+  const { error } = await supabase.from("users").upsert(rows);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

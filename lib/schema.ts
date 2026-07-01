@@ -145,10 +145,12 @@ export type Comment = z.infer<typeof commentSchema>;
 
 export const appUserSchema = z.object({
   id: z.string(),
-  /** 表示名 */
-  name: z.string(),
+  /** 表示名（未設定時は slackName を使用） */
+  name: z.string().optional().default(""),
   /** Slack 表示名（@ なし） */
   slackName: z.string().default(""),
+  /** メールアドレス */
+  email: z.string().optional(),
   /** アバター画像（base64 data URL または https URL） */
   avatarDataUrl: z.string().optional(),
   /** 管理者フラグ */

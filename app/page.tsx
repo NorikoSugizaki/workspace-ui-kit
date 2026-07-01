@@ -43,8 +43,9 @@ async function fetchUsers(): Promise<AppUser[]> {
 
   return data.map((row) => ({
     id: row.id,
-    name: row.name,
+    name: row.name ?? row.slack_name ?? "",
     slackName: row.slack_name ?? "",
+    email: row.email ?? undefined,
     avatarDataUrl: row.avatar_data_url ?? undefined,
     isAdmin: row.is_admin ?? false,
   }));

@@ -215,6 +215,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
   const [isAdmin, setIsAdmin] = useState(initial?.isAdmin ?? false);
   const [inviteSent, setInviteSent] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
+  const [emailFocused, setEmailFocused] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -342,6 +343,8 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onFocus={() => setEmailFocused(true)}
+          onBlur={() => setEmailFocused(false)}
           placeholder="例: noriko@example.com"
           className="h-8 text-sm"
         />
@@ -375,7 +378,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
           キャンセル
         </Button>
         <Button
-          variant="outline"
+          variant={emailFocused ? "default" : "outline"}
           size="sm"
           className="h-7 text-xs"
           disabled={!canSave}
@@ -387,7 +390,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
           <Button
             size="sm"
             className="h-7 gap-1 text-xs"
-            disabled={!canSave}
+            disabled={!canSave || emailFocused}
             onClick={handleSave(true)}
           >
             <Mail className="h-3 w-3" />

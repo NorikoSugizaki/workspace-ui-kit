@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 
 import { Workspace } from "@/components/workspace/Workspace";
-import commentsData from "@/data/comments.json";
 import workspaceData from "@/data/workspace.json";
 import {
   customersSchema,
@@ -10,6 +9,7 @@ import {
   workspaceSchema,
   type Customer,
   type AppUser,
+  type Comment,
 } from "@/lib/schema";
 import { supabase } from "@/lib/supabase";
 
@@ -34,6 +34,24 @@ async function fetchCustomers(): Promise<Customer[]> {
   }));
 }
 
+async function fetchComments(): Promise<Comment[]> {
+  const { data, error } = await supabase
+    .from("comments")
+    .select("*")
+    .order("created_at");
+
+  if (error || !data) return [];
+
+  return data.map((row) => ({
+    id: row.id,
+    customerId: row.customer_id,
+    text: row.text,
+    author: row.author,
+    createdAt: row.created_at,
+    reactions: row.reactions ?? [],
+  }));
+}
+
 async function fetchUsers(): Promise<AppUser[]> {
   const { data, error } = await supabase
     .from("users")
@@ -52,13 +70,14 @@ async function fetchUsers(): Promise<AppUser[]> {
 }
 
 export default async function Page() {
-  const [customers, users] = await Promise.all([
+  const [customers, comments, users] = await Promise.all([
     fetchCustomers(),
+    fetchComments(),
     fetchUsers(),
   ]);
 
   const custResult = customersSchema.safeParse(customers);
-  const commResult = commentsSchema.safeParse(commentsData);
+  const commResult = commentsSchema.safeParse(comments);
   const usersResult = appUsersSchema.safeParse(
     users.length > 0 ? users : (await import("@/data/users.json")).default
   );
@@ -67,7 +86,7 @@ export default async function Page() {
   if (!custResult.success || !commResult.success || !usersResult.success || !wsResult.success) {
     const errors = [
       !custResult.success && `customers: ${custResult.error.issues[0]?.message}`,
-      !commResult.success && `comments.json: ${commResult.error.issues[0]?.message}`,
+      !commResult.success && `comments: ${commResult.error.issues[0]?.message}`,
       !usersResult.success && `users: ${usersResult.error.issues[0]?.message}`,
       !wsResult.success && `workspace.json: ${wsResult.error.issues[0]?.message}`,
     ].filter(Boolean);

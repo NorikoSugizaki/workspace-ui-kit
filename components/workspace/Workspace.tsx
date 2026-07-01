@@ -124,6 +124,7 @@ export function Workspace({
   const [users, setUsers] = useState<AppUser[]>(initialUsers);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [authEmail, setAuthEmail] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   // Supabase 同期用 refs
@@ -144,10 +145,12 @@ export function Workspace({
 
     // Supabase Auth セッション確認
     const resolveUser = (email: string | undefined) => {
+      setAuthEmail(email ?? null);
       if (!email) { setCurrentUserId(null); return; }
       setUsers((prev) => {
         const match = prev.find((u) => u.email === email);
         if (match) setCurrentUserId(match.id);
+        else setCurrentUserId(null);
         return prev;
       });
     };
@@ -840,6 +843,26 @@ export function Workspace({
   }
 
   if (!currentUserId) {
+    // ログイン済みだがユーザーテーブルに未登録
+    if (authEmail) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border border-border bg-card p-8 shadow-sm text-center">
+            <p className="text-sm font-medium">アクセスできません</p>
+            <p className="text-xs text-muted-foreground">
+              <strong>{authEmail}</strong> はメンバーリストに登録されていません。<br />
+              管理者に連絡してください。
+            </p>
+            <button
+              onClick={() => supabase.auth.signOut().then(() => setAuthEmail(null))}
+              className="text-xs text-primary underline"
+            >
+              別のメールアドレスでログイン
+            </button>
+          </div>
+        </div>
+      );
+    }
     return <LoginForm workspaceName={workspace.name} />;
   }
 

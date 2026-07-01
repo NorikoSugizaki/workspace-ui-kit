@@ -25,7 +25,7 @@ export function LoginForm({ workspaceName }: Props) {
       email: email.trim(),
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
-        shouldCreateUser: false,
+        shouldCreateUser: true,
       },
     });
     setLoading(false);

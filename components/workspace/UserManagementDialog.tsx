@@ -22,6 +22,7 @@ type UserManagementDialogProps = {
   onOpenChange: (open: boolean) => void;
   users: AppUser[];
   currentUserId: string | null;
+  currentUserIsAdmin: boolean;
   onAdd: (user: Omit<AppUser, "id">) => void;
   onEdit: (id: string, patch: Partial<Omit<AppUser, "id">>) => void;
   onDelete: (id: string) => void;
@@ -32,6 +33,7 @@ export function UserManagementDialog({
   onOpenChange,
   users,
   currentUserId,
+  currentUserIsAdmin,
   onAdd,
   onEdit,
   onDelete,
@@ -82,6 +84,7 @@ export function UserManagementDialog({
                   user={user}
                   isCurrent={user.id === currentUserId}
                   canDelete={user.id !== currentUserId}
+                  showActions={currentUserIsAdmin}
                   onEdit={() => handleStartEdit(user.id)}
                   onDelete={() => setDeleteTarget(user)}
                 />
@@ -99,7 +102,7 @@ export function UserManagementDialog({
               />
             )}
 
-            {!adding && (
+            {!adding && currentUserIsAdmin && (
               <Button
                 variant="outline"
                 size="sm"
@@ -134,12 +137,14 @@ function UserRow({
   user,
   isCurrent,
   canDelete,
+  showActions,
   onEdit,
   onDelete,
 }: {
   user: AppUser;
   isCurrent: boolean;
   canDelete: boolean;
+  showActions: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -166,28 +171,30 @@ function UserRow({
           <span className="text-xs text-muted-foreground">{user.email}</span>
         )}
       </div>
-      <div className="flex items-center gap-1 shrink-0">
-        <button
-          onClick={onEdit}
-          className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-          title="編集"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </button>
-        <button
-          onClick={onDelete}
-          disabled={!canDelete}
-          className={cn(
-            "rounded p-1.5",
-            canDelete
-              ? "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-              : "cursor-not-allowed opacity-30",
-          )}
-          title={canDelete ? "削除" : "ログイン中のユーザーは削除できません"}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
+      {showActions && (
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={onEdit}
+            className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            title="編集"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={onDelete}
+            disabled={!canDelete}
+            className={cn(
+              "rounded p-1.5",
+              canDelete
+                ? "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                : "cursor-not-allowed opacity-30",
+            )}
+            title={canDelete ? "削除" : "ログイン中のユーザーは削除できません"}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

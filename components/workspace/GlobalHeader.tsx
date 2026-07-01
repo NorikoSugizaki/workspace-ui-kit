@@ -125,6 +125,7 @@ export function GlobalHeader({
         onOpenChange={setUserMgmtOpen}
         users={users}
         currentUserId={currentUser?.id ?? null}
+        currentUserIsAdmin={currentUser?.isAdmin ?? false}
         onAdd={onAddUser}
         onEdit={onEditUser}
         onDelete={onDeleteUser}

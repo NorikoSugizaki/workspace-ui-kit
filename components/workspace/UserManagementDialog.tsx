@@ -222,7 +222,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
 
   const canSave = slackName.trim().length > 0;
 
-  const handleSave = async () => {
+  const handleSave = (sendInvite: boolean) => async () => {
     const data: Omit<AppUser, "id"> = {
       name: slackName.trim(),
       slackName: slackName.trim(),
@@ -232,8 +232,7 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
     };
     onSave(data);
 
-    // 新規ユーザーにはメールアドレスが入力されていれば招待メールを送信
-    if (isNew && email.trim()) {
+    if (sendInvite && email.trim()) {
       try {
         const { error } = await supabase.auth.signInWithOtp({
           email: email.trim(),
@@ -369,13 +368,25 @@ function UserForm({ initial, isNew, onSave, onCancel }: UserFormProps) {
           キャンセル
         </Button>
         <Button
+          variant="outline"
           size="sm"
           className="h-7 text-xs"
           disabled={!canSave}
-          onClick={handleSave}
+          onClick={handleSave(false)}
         >
-          {isNew && email.trim() ? "保存して招待メール送信" : "保存"}
+          保存
         </Button>
+        {isNew && email.trim() && (
+          <Button
+            size="sm"
+            className="h-7 gap-1 text-xs"
+            disabled={!canSave}
+            onClick={handleSave(true)}
+          >
+            <Mail className="h-3 w-3" />
+            招待メールを送信
+          </Button>
+        )}
       </div>
     </div>
   );

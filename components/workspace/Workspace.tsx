@@ -877,12 +877,13 @@ export function Workspace({
   }, [saveUsersToServer]);
 
   const deleteUser = useCallback((id: string) => {
-    setUsers((prev) => {
-      const next = prev.filter((u) => u.id !== id);
-      saveUsersToServer(next);
-      return next;
-    });
-  }, [saveUsersToServer]);
+    setUsers((prev) => prev.filter((u) => u.id !== id));
+    fetch("/api/users", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    }).catch(() => {});
+  }, []);
 
   const selectCurrentUser = useCallback((userId: string) => {
     setCurrentUserId(userId);

@@ -10,10 +10,10 @@ const supabase = createClient(
 export async function GET() {
   const { data, error } = await supabase.from("users").select("*");
   if (error || !data) return NextResponse.json([]);
-  return NextResponse.json(
+    return NextResponse.json(
     data.map((row) => ({
       id: row.id,
-      name: row.name ?? row.slack_name ?? "",
+      name: row.slack_name ?? "",
       slackName: row.slack_name ?? "",
       email: row.email ?? undefined,
       avatarDataUrl: row.avatar_data_url ?? undefined,
@@ -30,7 +30,6 @@ export async function POST(req: NextRequest) {
   }
   const rows = result.data.map((u) => ({
     id: u.id,
-    name: u.slackName || u.name || "",
     slack_name: u.slackName,
     email: u.email ?? null,
     avatar_data_url: u.avatarDataUrl ?? null,

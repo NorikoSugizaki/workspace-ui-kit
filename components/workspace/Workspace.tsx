@@ -172,10 +172,14 @@ export function Workspace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Service Worker 登録（PWA）
+  // Service Worker 登録（PWA）+ 通知許可リクエスト
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+    // 通知許可をリクエスト
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
     }
     // アプリを開いたらバッジをリセット
     const clearBadge = () => {
@@ -202,7 +206,7 @@ export function Workspace({
         { event: "INSERT", schema: "public", table: "comments" },
         (payload) => {
           const row = payload.new as { id: string; customer_id: string; text: string; author: string; created_at: string; reactions: [] };
-          // 自分がメンションされている場合（テスト中は自分→自分も含む）
+          // 自分がメンションされている場合
           if (row.text.includes(`@${currentUser.slackName}`)) {
             setComments((prev) => {
               if (prev.find((c) => c.id === row.id)) return prev;
@@ -222,6 +226,13 @@ export function Workspace({
               }
               return next;
             });
+            // トースト通知
+            if ("Notification" in window && Notification.permission === "granted") {
+              new Notification(`@${currentUser.slackName} へのメンション`, {
+                body: `${row.author}: ${row.text}`,
+                icon: "/icon-192.png",
+              });
+            }
           }
         },
       )
